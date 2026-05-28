@@ -5,7 +5,8 @@ import psycopg2
 from datetime import date, timedelta, datetime
 import json
 import finnhub
-
+from psycopg2.extras import RealDictCursor
+from transformers import pipeline
 
 def ensure_stock_exists(ticker, conn):
     with conn.cursor() as cur:
@@ -119,3 +120,38 @@ def collect_raw_fundemeentals(ticker: str, conn):
                     VALUES (%s, %s)
                     ON CONFLICT DO NOTHING""", (ticker, json.dumps(metrics)))
     conn.commit()
+
+
+def analyze_news_articles(ticker: str, published_at: str, classifier=None, conn=None):
+    classifier = pipeline(
+    "sentiment-analysis",
+    model="ProsusAI/finbert"
+)
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute("""
+            SELECT id, headline, source, published_at, raw_content
+            FROM news_articles
+            WHERE ticker = %s 
+            AND published_at >= %s
+            ORDER BY published_at DESC
+            LIMIT 15;
+        """, 
+        (ticker, published_at))
+        news = cur.fetchall()
+        for i in news:
+            analysis = classifier(i['raw_content'])
+            cur.execute("""
+                UPDATE news_articles
+                SET label = %s,
+                    score = %s
+                WHERE id = %s
+                        """, (analysis[0]['label'], analysis[0]['score'], i['id']))
+    conn.commit()
+
+    # for i in news:
+    #     print(i['id'])
+    #     print(i['headline'])
+    #     print(i['source'])
+    #     print(i['published_at'])
+    #     print(i['raw_content'])
+    #     print(classifier(i['raw_content']))
