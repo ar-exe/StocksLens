@@ -9,7 +9,7 @@ from psycopg2.extras import RealDictCursor
 from transformers import pipeline
 from prefect import task
 from prefect.tasks import task_input_hash
-
+from data_pipeline.database.connection import get_connection, put_connection
 
 @task(
         name='Analyze News Articles',
@@ -20,7 +20,7 @@ from prefect.tasks import task_input_hash
 )
 def analyze_news_articles(ticker: str, published_at: str, classifier=None, conn=None):
 
-    
+    conn = get_connection()
     classifier = pipeline(
     "sentiment-analysis",
     model="ProsusAI/finbert"
@@ -45,3 +45,4 @@ def analyze_news_articles(ticker: str, published_at: str, classifier=None, conn=
                 WHERE id = %s
                         """, (analysis[0]['label'], analysis[0]['score'], i['id']))
     conn.commit()
+    put_connection(conn)

@@ -9,7 +9,7 @@ from psycopg2.extras import RealDictCursor
 from transformers import pipeline
 from prefect import task
 from prefect.tasks import task_input_hash
-
+from data_pipeline.database.connection import get_connection, put_connection
 
 @task(
         name='Collect Peers',
@@ -18,7 +18,8 @@ from prefect.tasks import task_input_hash
         retries=3,
         retry_delay_seconds=10
 )
-def collect_peers(ticker: str,finnhub_client, conn):
+def collect_peers(ticker: str,finnhub_client):
+    conn = get_connection()
     peers = finnhub_client.company_peers(ticker)
     with conn.cursor() as cur:
         for i in peers:
@@ -36,3 +37,4 @@ def collect_peers(ticker: str,finnhub_client, conn):
                             i
                         ))
     conn.commit()
+    put_connection(conn)

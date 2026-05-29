@@ -10,7 +10,7 @@ from psycopg2.extras import RealDictCursor
 
 from prefect import task
 from prefect.tasks import task_input_hash
-
+from data_pipeline.database.connection import get_connection, put_connection
 
 @task(
         name='Collect Raw Fundamentals',
@@ -19,7 +19,8 @@ from prefect.tasks import task_input_hash
         retries=3,
         retry_delay_seconds=10
 )
-def collect_raw_fundemantals(ticker: str,finnhub_client, conn):
+def collect_raw_fundemantals(ticker: str,finnhub_client):
+    conn = get_connection()
     data = finnhub_client.company_basic_financials(ticker, 'all')
     metrics = data['metric']
     with conn.cursor() as cur:
@@ -28,3 +29,4 @@ def collect_raw_fundemantals(ticker: str,finnhub_client, conn):
                     VALUES (%s, %s)
                     ON CONFLICT DO NOTHING""", (ticker, json.dumps(metrics)))
     conn.commit()
+    put_connection(conn)
