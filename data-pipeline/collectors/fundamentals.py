@@ -8,7 +8,17 @@ import finnhub
 from psycopg2.extras import RealDictCursor
 
 
+from prefect import task
+from prefect.tasks import task_input_hash
 
+
+@task(
+        name='Collect Raw Fundamentals',
+        cache_key_fn=task_input_hash,
+        cache_expiration=timedelta(hours=23),
+        retries=3,
+        retry_delay_seconds=10
+)
 def collect_raw_fundemantals(ticker: str,finnhub_client, conn):
     data = finnhub_client.company_basic_financials(ticker, 'all')
     metrics = data['metric']

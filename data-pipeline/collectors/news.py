@@ -7,7 +7,17 @@ import json
 import finnhub
 from psycopg2.extras import RealDictCursor
 from transformers import pipeline
+from prefect import task
+from prefect.tasks import task_input_hash
 
+
+@task(
+        name='Collect News Articles',
+        cache_key_fn=task_input_hash,
+        cache_expiration=timedelta(hours=23),
+        retries=3,
+        retry_delay_seconds=10
+)
 def collect_news(ticker: str, d_from: str, d_to:str,finnhub_client, conn):
     data = pd.DataFrame(finnhub_client.company_news(ticker, _from=d_from, to=d_to))
     data.reset_index(inplace=True)

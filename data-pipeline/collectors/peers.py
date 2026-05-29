@@ -7,7 +7,17 @@ import json
 import finnhub
 from psycopg2.extras import RealDictCursor
 from transformers import pipeline
+from prefect import task
+from prefect.tasks import task_input_hash
 
+
+@task(
+        name='Collect Peers',
+        cache_key_fn=task_input_hash,
+        cache_expiration=timedelta(hours=23),
+        retries=3,
+        retry_delay_seconds=10
+)
 def collect_peers(ticker: str,finnhub_client, conn):
     peers = finnhub_client.company_peers(ticker)
     with conn.cursor() as cur:

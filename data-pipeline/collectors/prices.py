@@ -16,7 +16,17 @@ def ensure_stock_exists(ticker, conn):
             ON CONFLICT DO NOTHING
         """, (ticker,))
     conn.commit()
+from prefect import task
+from prefect.tasks import task_input_hash
 
+
+@task(
+        name='Collect Stock Prices',
+        cache_key_fn=task_input_hash,
+        cache_expiration=timedelta(hours=23),
+        retries=3,
+        retry_delay_seconds=10
+)
 def collect_prices(ticker: str, period: str, conn):
     ensure_stock_exists(ticker=ticker, conn=conn)
     tik = yf.Ticker(ticker)
