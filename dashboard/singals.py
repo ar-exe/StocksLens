@@ -37,8 +37,8 @@ def derive_trend_signal(row) -> str:
 
 def derive_health_score(row) ->float:
     score = 5.0
-    score += row['sentiment_scoe'] * 2.0
-    momentum_factor = max(-1.5, min (1.5, row['pct_chagne_7d'] * 0.15))
+    score += row['sentiment_score'] * 2.0
+    momentum_factor = max(-1.5, min (1.5, row['pct_change_7d'] * 0.15))
     score += momentum_factor
 
     insider_net = row['insider_bought'] - row['insider_sold']

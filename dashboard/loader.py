@@ -1,9 +1,17 @@
+
+import sys
+import os
+
+# Corrected: Add the project root to sys.path
+# This should go up one level from 'dashboard' to 'StocksLens'
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
 import streamlit as st
 import pandas as pd
 import psycopg2
-from config import settings
+# from config import settings
 from data_pipeline.database.connection import get_connection, put_connection
-from dashboard.singals import derive_health_score, derive_trend_signal
+from singals import derive_health_score, derive_trend_signal
 
 @st.cache_data(ttl=3600)
 def load_prices(ticker: str, days: int) -> pd.DataFrame:
@@ -38,9 +46,21 @@ def load_fundamentals(ticker: str) -> pd.DataFrame:
                     WHERE ticker = %s
                     ORDER BY curated_at DESC
                     """, conn, params=(ticker,))
-    
     put_connection(conn)
-    return df
+    if df.empty:
+        return {}
+    payload = df.iloc[0]['payload']
+    return{
+        "pe_ratio":       payload.get("peNormalizedAnnual"),
+        "eps_growth":     payload.get("epsGrowthTTMYoy"),
+        "revenue_growth": payload.get("revenueGrowthTTMYoy"),
+        "debt_equity":    payload.get("totalDebt/totalEquityAnnual"),
+        "roe":            payload.get("roeTTM"),
+        "high_52w":       payload.get("52WeekHigh"),
+        "low_52w":        payload.get("52WeekLow"),
+        "beta":           payload.get("beta"),
+
+    }
 
 @st.cache_data(ttl=3600)
 def load_news(ticker: str, published_at: str, limit: int) -> pd.DataFrame:
