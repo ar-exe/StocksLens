@@ -11,7 +11,7 @@ import pandas as pd
 import psycopg2
 # from config import settings
 from data_pipeline.database.connection import get_connection, put_connection
-from singals import derive_health_score, derive_trend_signal
+from dashboard.signals import derive_health_score, derive_trend_signal
 
 @st.cache_data(ttl=3600)
 def load_prices(ticker: str, days: int) -> pd.DataFrame:
@@ -66,7 +66,7 @@ def load_fundamentals(ticker: str) -> pd.DataFrame:
 def load_news(ticker: str, published_at: str, limit: int) -> pd.DataFrame:
     conn = get_connection()
     df = pd.read_sql("""
-                    SELECT headline, source, url, raw_content, label, score
+                    SELECT headline, source, url, raw_content, label, score, published_at
                     FROM news_articles
                     WHERE ticker = %s
                     AND published_at >= %s
@@ -161,6 +161,7 @@ def load_summary()-> pd.DataFrame:
                      )
                     SELECT
                         lp.ticker,
+                        lp.price_date,
                         lp.last_close,
                         lp.last_volume,
                         ROUND((lp.last_close - pp.prev_close)::numeric, 2)
@@ -178,7 +179,7 @@ def load_summary()-> pd.DataFrame:
                         COALESCE(ROUND(ns.sentiment_score::numeric, 3), 0) AS sentiment_score,
                         COALESCE(ns.news_count_7d, 0) AS news_count_7d,
                         COALESCE(ns.positive_count, 0) AS positive_count,
-                        COALESCE(ns.negative_count, 0) ASnegative_count,
+                        COALESCE(ns.negative_count, 0) AS negative_count,
                         COALESCE(ns.neutral_count, 0) AS neutral_count,
                      
                         COALESCE(ia.shares_bought, 0) AS insider_bought,
