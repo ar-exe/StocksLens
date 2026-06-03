@@ -26,8 +26,8 @@ def collect_insider_transactions(ticker: str, d_from: str, d_to: str,finnhub_cli
     with conn.cursor() as cur:
         for _, row in data.iterrows():
             cur.execute("""
-                INSERT INTO insider_trans
-                (ticker, change, name, filingdate, transdate, share, transcode, transprice)
+                INSERT INTO insider_transactions
+                (ticker, change_amount, name, filing_date, transaction_date, shares, transaction_code, transaction_price)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT DO NOTHING """,(
                     ticker,

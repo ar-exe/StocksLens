@@ -131,8 +131,8 @@ with col_left:
     else:
         news["date"] = pd.to_datetime(news['published_at']).dt.date
         news['signed_score'] = news.apply(
-            lambda r: r['confidence'] if r['label'] == 'positive'
-                else -r['confidence'] if r['label'] == 'negative'
+            lambda r: r['score'] if r['label'] == 'positive'
+                else -r['score'] if r['label'] == 'negative'
                 else 0,
             axis = 1
         )
