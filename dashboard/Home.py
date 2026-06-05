@@ -33,6 +33,35 @@ for col, (_, row) in zip(cols, df.iterrows()):
     col.caption(f"Sentiment: {row.sentiment_score:+.2f}")
 
 st.divider()
+# Home.py — after your watchlist summary section
+st.divider()
+st.subheader("Explore")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.page_link(
+        "pages/1_Stock_Analysis.py",
+        label="Stock Analysis",
+        icon="📊"
+    )
+    st.caption("Deep dive into any stock — price chart, sentiment history, news, insider activity")
+
+with col2:
+    st.page_link(
+        "pages/2_Sector_Overview.py",
+        label="Sector Overview",
+        icon="🗺️"
+    )
+    st.caption("Compare all tracked stocks — signals, momentum, health scores side by side")
+
+# with col3:
+#     st.page_link(
+#         "pages/3_Peers.py",
+#         label="Peer Analysis",
+#         icon="🔗"
+#     )
+#     st.caption("Sector peers and correlated stocks for any ticker")
 
 
 st.subheader("Overview")
