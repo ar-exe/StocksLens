@@ -25,4 +25,4 @@ jobs:
           database_url:  ${{ secrets.DATABASE_URL }}
           finnhub_key:   ${{ secrets.FINNHUB_KEY }}
         #   ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
-        run: python pipeline.py
+        run: python StocksLens/data_pipeline/main/main.py
