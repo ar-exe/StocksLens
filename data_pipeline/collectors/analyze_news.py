@@ -11,6 +11,11 @@ from prefect import task
 from prefect.tasks import task_input_hash
 from data_pipeline.database.connection import get_connection, put_connection
 
+classifier = pipeline(
+    "sentiment-analysis",
+    model="ProsusAI/finbert"
+)
+
 @task(
         name='Analyze News Articles',
         cache_key_fn=task_input_hash,
@@ -18,13 +23,10 @@ from data_pipeline.database.connection import get_connection, put_connection
         retries=3,
         retry_delay_seconds=10
 )
-def analyze_news_articles(ticker: str, published_at: str, classifier=None, conn=None):
+def analyze_news_articles(ticker: str, published_at: str, classifier=classifier, conn=None):
 
     conn = get_connection()
-    classifier = pipeline(
-    "sentiment-analysis",
-    model="ProsusAI/finbert"
-)
+    
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute("""
             SELECT id, headline, source, published_at, raw_content
